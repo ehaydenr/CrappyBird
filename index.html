@@ -1,0 +1,159 @@
+<html>
+<head>
+  <script>
+    window.onload = function(){  
+        // Get Canvas
+        var canvas = document.getElementById("paper"),
+        c = canvas.getContext("2d");
+        
+        canvas.addEventListener.apply(canvas, ["mousedown", function(){ mouseClick(); }, false]);
+        
+        
+        // PHYS Constants
+        var gravity = 0.5;
+        
+        // Scrolling
+        
+        var backgroundPosXProgress = 0;
+        var DEFAULT_PIPE_HEIGHT = canvas.height/4,
+        DEFAULT_PIPE_WIDTH = canvas.width/8,
+        DEFAULT_PIPE_FLUCT = canvas.height/8;
+        var scrollSpeed = 3;
+        var player, pipe1, pipe2, paused;
+        init();
+        
+        setInterval(function(){
+          if(!paused){
+
+          // Check to see if pipe has left screen
+          
+          if(pipe1.x + pipe1.width <= 0){
+            pipe1.x = canvas.width;
+            pipe1.height = getRandPipeHeight()
+          }
+          
+          if(pipe2.x + pipe2.width <= 0){
+            pipe2.x = canvas.width;
+            pipe2.height = getRandPipeHeight()
+          }
+          
+          // Check to see if player left screen
+          
+          if(player.y + player.height >= canvas.height){
+            playerLost();
+          }
+          
+          if(!paused && collision()){
+            playerLost();
+          }
+          
+          // Paint background at proper position
+          
+          // Wipe
+          c.fillStyle = "yellow";
+          c.fillRect(0, 0, canvas.width, canvas.height);
+          
+          // Add Elements
+          
+          
+            pipe1.draw();
+            pipe2.draw();
+          
+            // Add Static X Element
+            player.draw();
+          }
+          
+        }, 30);
+
+      // Utilities
+
+      function getRandPipeHeight(){
+        var pipeFluct = Math.floor((Math.random()*3)+1);
+        return DEFAULT_PIPE_HEIGHT + pipeFluct * DEFAULT_PIPE_FLUCT;
+      }
+      
+      function collision(){
+        var inBetweenPipe1X = player.x + player.width >= pipe1.x && player.x < pipe1.x + pipe1.width;
+        var inBetweenPipe1Y = player.y <= pipe1.height;
+        if(inBetweenPipe1X && inBetweenPipe1Y){
+          console.log("Collision");
+          playerLost();
+        }
+        
+        var inBetweenPipe2X = player.x + player.width >= pipe2.x && player.x < pipe2.x + pipe2.width;
+        var inBetweenPipe2Y = player.y + player.height >= canvas.height - pipe2.height;
+        if(inBetweenPipe2X && inBetweenPipe2Y){
+          console.log("Collision");
+          playerLost();
+        }
+      }
+      
+      function playerLost(){
+        paused = true;
+      }
+      
+      // Listeners
+
+      function mouseClick(){
+        if(paused){
+          // Reinitialize game
+          init();
+        }else{
+          // Accelerate up
+          player.v = -8;
+        }
+      }
+      
+      function init(){
+        player = new Player();
+        pipe1 = new Pipe(0, true);
+        pipe2 = new Pipe(canvas.width/2, false);
+        paused = false;
+      }
+
+      // Class Definitions
+
+      function Player(){
+        this.y = canvas.height/2;
+        this.v = 0;
+        this.x = canvas.width/10;
+        this.width = 40;
+        this.height = 40;
+
+        this.draw = function(){
+          c.fillStyle = "red";
+          this.y = this.y + this.v + (0.5)*gravity;
+          this.v = this.v + gravity;
+          c.fillRect(this.x, this.y, this.width, this.height);
+        }
+      }
+
+      function Pipe(pos, top){
+        this.height = DEFAULT_PIPE_HEIGHT;
+        this.width = DEFAULT_PIPE_WIDTH;
+        this.x = pos;
+        this.top = top;
+
+        this.draw = function(){
+          c.fillStyle = "green";
+          this.x -= scrollSpeed;
+          if(this.top)
+            c.fillRect(this.x, 0, this.width, this.height);
+          else
+            c.fillRect(this.x, canvas.height - this.height, this.width, this.height);
+        }
+      }
+
+
+    };
+
+  </script>
+
+  <script src="jquery-1.11.0.js"></script>
+</head>
+<body>
+  <canvas id="paper" width="500" height="500">
+    Go get chrome!...
+  </canvas>
+</body>
+</html>
